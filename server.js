@@ -1,9 +1,17 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const {animals} = require('./data/animals');
 const PORT = process.env.PORT || 3001;
 
+
 //To instantiate the server
 const app = express();
+
+//parse incoming string or array data
+app.use(express.urlencoded({ extended: true }));
+//parse incoming JSON data
+app.use(express.json());
 
 //function to filter the query
 function filterByQuery(query, animalsArray) {
@@ -51,6 +59,42 @@ function findById(id, animalsArray){
     return result;
 }
 
+/*
+    Function to add new animals
+*/
+function createNewAnimal(body, animalsArray){
+    console.log(body);
+
+    //main code of the function!
+    const animal = body;
+    animalsArray.push(animal);
+    fs.writeFileSync(
+        path.join(__dirname, './data/animals.json'),
+        JSON.stringify({animals:animalsArray}, null, 2)
+    );
+    //return finished code to post route for response
+    return animal;
+}
+
+/*
+    function to vaslidate the input of animal
+*/
+function validateAnimal(animal){
+    if(!animal.name || typeof animal.name !== 'string') {
+        return false;
+    }
+    if(!animal.species || typeof animal.species !== 'string') {
+        return false;
+    }
+    if(!animal.diet || typeof animal.diet !== 'string') {
+        return false;
+    }
+    if(!animals.personalityTraits || !Array.isArray(animal.personalityTraits)){
+        return false;
+    }
+    return true;
+}
+
 //Creating a route for the front end can request data from
 app.get('/api/animals', (req, res) => {
     let results = animals;
@@ -69,6 +113,24 @@ app.get('/api/animals/:id', (req, res) => { //param route must come after the fi
     }else{
         res.send(404);
     }    
+});
+
+//creating route for the user to input new data into the zoo's website
+app.post('/api/animals', (req,res) => {
+    //set id based on what the next index of the array will be
+    req.body.id = animals.length.toString();
+
+    //validate using the validate function
+    if(!validateAnimal(req.body)) {
+        res.status(400).send('The animal is not properly formatted');
+    }else{
+    //add animal to json file and animals in the function created
+    createNewAnimal(req.body,animals);
+
+    //req.body is where our incoming content will be
+    //console.log(req.body);
+    res.json(req.body);
+    }
 });
 
 //to make the server listen to requests
