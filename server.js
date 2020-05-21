@@ -12,6 +12,8 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 //parse incoming JSON data
 app.use(express.json());
+//to get the css and js front ends
+app.use(express.static('public'));
 
 //function to filter the query
 function filterByQuery(query, animalsArray) {
@@ -79,21 +81,21 @@ function createNewAnimal(body, animalsArray){
 /*
     function to vaslidate the input of animal
 */
-function validateAnimal(animal){
-    if(!animal.name || typeof animal.name !== 'string') {
-        return false;
+function validateAnimal(animal) {
+    if (!animal.name || typeof animal.name !== 'string') {
+      return false;
     }
-    if(!animal.species || typeof animal.species !== 'string') {
-        return false;
+    if (!animal.species || typeof animal.species !== 'string') {
+      return false;
     }
-    if(!animal.diet || typeof animal.diet !== 'string') {
-        return false;
+    if (!animal.diet || typeof animal.diet !== 'string') {
+      return false;
     }
-    if(!animals.personalityTraits || !Array.isArray(animal.personalityTraits)){
-        return false;
+    if (!animal.personalityTraits || !Array.isArray(animal.personalityTraits)) {
+      return false;
     }
     return true;
-}
+  }
 
 //Creating a route for the front end can request data from
 app.get('/api/animals', (req, res) => {
@@ -131,6 +133,17 @@ app.post('/api/animals', (req,res) => {
     //console.log(req.body);
     res.json(req.body);
     }
+});
+
+//route to the html
+app.get('/', (req, res)=>{
+    res.sendFile(path.join(__dirname, './public/index.html'));
+});
+app.get('/animals', (req, res)=> {
+    res.sendFile(path.join(__dirname, './public/animals.html'));
+});
+app.get('/zookeepers', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/zookeepers.html'));
 });
 
 //to make the server listen to requests
